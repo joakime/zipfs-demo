@@ -41,16 +41,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(WorkDirExtension.class)
-public class PathLoaderTest
+public class PathCollectionTest
 {
     public WorkDir workDir;
 
     @Test
-    public void testEmptyPathLoader() throws Exception
+    public void testEmptyPathCollection() throws Exception
     {
-        PathLoader pathLoader = new PathLoader();
-        assertThat("pathLoader.size", pathLoader.size(), is(0));
-        assertTrue(pathLoader.isEmpty());
+        PathCollection pathCollection = new PathCollection();
+        assertThat("pathCollection.size", pathCollection.size(), is(0));
+        assertTrue(pathCollection.isEmpty());
     }
 
     @Test
@@ -60,15 +60,15 @@ public class PathLoaderTest
 
         FS.touch(testPath.resolve("hello.txt"));
 
-        PathLoader pathLoader = new PathLoader();
-        pathLoader.add(testPath);
+        PathCollection pathCollection = new PathCollection();
+        pathCollection.add(testPath);
 
-        assertThat("pathLoader.size", pathLoader.size(), is(1));
+        assertThat("pathCollection.size", pathCollection.size(), is(1));
 
-        Path discovered = pathLoader.resolveFirstExisting("hello.txt");
+        Path discovered = pathCollection.resolveFirstExisting("hello.txt");
         assertEquals(testPath.resolve("hello.txt"), discovered);
 
-        Path missing = pathLoader.resolveFirstExisting("missing.txt");
+        Path missing = pathCollection.resolveFirstExisting("missing.txt");
         assertNull(missing);
     }
 
@@ -90,17 +90,17 @@ public class PathLoaderTest
         FS.touch(bar.resolve("META-INF/services/org.eclipse.jetty.Zed"));
         FS.touch(bar.resolve("META-INF/services/org.cometd.Widget"));
 
-        PathLoader pathLoader = new PathLoader();
-        pathLoader.add(foo);
-        pathLoader.add(bar);
+        PathCollection pathCollection = new PathCollection();
+        pathCollection.add(foo);
+        pathCollection.add(bar);
 
-        assertThat("pathLoader.size", pathLoader.size(), is(2));
+        assertThat("pathCollection.size", pathCollection.size(), is(2));
 
         List<Path> expected = new ArrayList<>();
         expected.add(foo.resolve("META-INF/services/org.eclipse.jetty.Zed"));
         expected.add(bar.resolve("META-INF/services/org.eclipse.jetty.Zed"));
 
-        List<Path> services = pathLoader.resolveAll("META-INF/services/org.eclipse.jetty.Zed", Files::exists);
+        List<Path> services = pathCollection.resolveAll("META-INF/services/org.eclipse.jetty.Zed", Files::exists);
         assertThat(services, ordered(expected));
     }
 
@@ -124,11 +124,11 @@ public class PathLoaderTest
         FS.touch(foo.resolve("org/eclipse/jetty/demo/Extra.class"));
         FS.touch(bar.resolve("org/cometd/Widget.class"));
 
-        PathLoader pathLoader = new PathLoader();
-        pathLoader.add(foo);
-        pathLoader.add(bar);
+        PathCollection pathCollection = new PathCollection();
+        pathCollection.add(foo);
+        pathCollection.add(bar);
 
-        assertThat("pathLoader.size", pathLoader.size(), is(2));
+        assertThat("pathCollection.size", pathCollection.size(), is(2));
 
         List<Path> expected = new ArrayList<>();
         expected.add(foo.resolve("org/eclipse/jetty/demo/Extra.class"));
@@ -136,7 +136,7 @@ public class PathLoaderTest
         expected.add(bar.resolve("org/cometd/Widget.class"));
         Collections.sort(expected);
 
-        Stream<Path> classes = pathLoader.find(new ClassFilePredicate());
+        Stream<Path> classes = pathCollection.find(new ClassFilePredicate());
 
         List<Path> actual = classes.sorted().collect(Collectors.toList());
         assertThat(actual, ordered(expected));
@@ -162,18 +162,18 @@ public class PathLoaderTest
         FS.touch(foo.resolve("org/eclipse/jetty/demo/Extra.class"));
         FS.touch(bar.resolve("org/cometd/Widget.class"));
 
-        try (PathLoader pathLoader = new PathLoader())
+        try (PathCollection pathCollection = new PathCollection())
         {
-            pathLoader.add(foo);
-            pathLoader.add(bar);
+            pathCollection.add(foo); // a.jar!/
+            pathCollection.add(bar); // a.jar!/META-INF/resources/
 
-            pathLoader.add(getTestJar("example.jar"));
-            pathLoader.add(getTestJar("jar-file-resource.jar"));
-            pathLoader.add(getTestJar("test-base-resource.jar"));
+            pathCollection.add(getTestJar("example.jar"));
+            pathCollection.add(getTestJar("jar-file-resource.jar"));
+            pathCollection.add(getTestJar("test-base-resource.jar"));
 
-            assertThat("pathLoader.size", pathLoader.size(), is(5));
+            assertThat("pathCollection.size", pathCollection.size(), is(5));
 
-            Stream<Path> classes = pathLoader.find(new ClassFilePredicate());
+            Stream<Path> classes = pathCollection.find(new ClassFilePredicate());
             // classes.sorted(new PathComparator()).map(Path::toUri).forEach(System.out::println);
 
             List<String> actual = classes.map(Path::toString).collect(Collectors.toList());

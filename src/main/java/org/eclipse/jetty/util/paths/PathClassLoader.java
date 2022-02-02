@@ -26,27 +26,27 @@ import java.util.Enumeration;
 import java.util.List;
 
 /**
- * Basic ClassLoader based on an existing {@link PathLoader}
+ * Basic ClassLoader based on an existing {@link PathCollection}
  */
 public class PathClassLoader extends ClassLoader
 {
-    private final PathLoader pathLoader;
+    private final PathCollection pathCollection;
 
-    public PathClassLoader(PathLoader pathLoader)
+    public PathClassLoader(PathCollection pathCollection)
     {
-        this.pathLoader = pathLoader;
+        this.pathCollection = pathCollection;
     }
 
-    public PathLoader getPathLoader()
+    public PathCollection getpathCollection()
     {
-        return pathLoader;
+        return pathCollection;
     }
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException
     {
         String className = name.replace('.', '/').concat(".class");
-        Path result = pathLoader.resolveFirstExisting(className);
+        Path result = pathCollection.resolveFirstExisting(className);
         if (result == null)
             throw new ClassNotFoundException(name);
 
@@ -72,7 +72,7 @@ public class PathClassLoader extends ClassLoader
     @Override
     protected URL findResource(String name)
     {
-        Path result = pathLoader.resolveFirstExisting(name);
+        Path result = pathCollection.resolveFirstExisting(name);
         if (result == null)
             return null;
         try
@@ -90,7 +90,7 @@ public class PathClassLoader extends ClassLoader
     protected Enumeration<URL> findResources(String name) throws IOException
     {
         List<URL> results = new ArrayList<>();
-        for (Path path : pathLoader.resolveAll(name, Files::exists))
+        for (Path path : pathCollection.resolveAll(name, Files::exists))
         {
             results.add(path.toUri().toURL());
         }

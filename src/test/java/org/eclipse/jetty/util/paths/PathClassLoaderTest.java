@@ -23,10 +23,10 @@ public class PathClassLoaderTest
     @Test
     public void testLoadClass() throws Exception
     {
-        try (PathLoader pathLoader = new PathLoader())
+        try (PathCollection pathCollection = new PathCollection())
         {
-            pathLoader.add(MavenTestingUtils.getTestResourcePathFile("example.jar"));
-            PathClassLoader classLoader = new PathClassLoader(pathLoader);
+            pathCollection.add(MavenTestingUtils.getTestResourcePathFile("example.jar"));
+            PathClassLoader classLoader = new PathClassLoader(pathCollection);
             Class<?> clazz = classLoader.loadClass("org.example.InBoth");
             assertNotNull(clazz);
         }

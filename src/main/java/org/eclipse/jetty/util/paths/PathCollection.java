@@ -32,13 +32,13 @@ import java.util.stream.Stream;
  * This fits in the same space as the ResourceCollection of past Jetty versions.
  * </p>
  */
-public class PathLoader extends ArrayList<Path> implements AutoCloseable
+public class PathCollection extends ArrayList<Path> implements AutoCloseable
 {
-    public PathLoader()
+    public PathCollection()
     {
     }
 
-    public PathLoader(Path... paths)
+    public PathCollection(Path... paths)
     {
         clear();
         addAll(List.of(paths));
@@ -114,7 +114,7 @@ public class PathLoader extends ArrayList<Path> implements AutoCloseable
     @Override
     public void trimToSize()
     {
-        throw new UnsupportedOperationException("Not supported by PathLoader");
+        throw new UnsupportedOperationException("Not supported by pathCollection");
     }
 
     @Override

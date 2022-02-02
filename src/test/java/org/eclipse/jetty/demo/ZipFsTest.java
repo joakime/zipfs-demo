@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
+import org.eclipse.jetty.util.paths.FileSystemPool;
 import org.eclipse.jetty.util.paths.RegexPathPredicate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -76,21 +77,44 @@ public class ZipFsTest
         Map<String, String> env = new HashMap<>();
         env.put("multi-release", "runtime");
 
-        URI zipUri = URI.create("jar:" + createdJar.toUri().toASCIIString());
+        URI zipUri = URI.create("jar:" + createdJar.toUri().toASCIIString() + "!/WEB-INF/");
 
         try (FileSystem fs = FileSystems.newFileSystem(zipUri, env))
         {
+            Path what = fs.getRootDirectories().iterator().next();
+            System.out.printf("What = %s%n", what.toUri());
             Path root = fs.getPath("/");
 
             System.out.println("-- using straight Files.walk() --");
             // Show contents
             Files.walk(root)
                 .filter(Files::isRegularFile)
-                .filter(new RegexPathPredicate("^.*/(web|meta)-inf/.*$").negate())
+                .filter(new RegexPathPredicate("^.*/(meta)-inf/.*$").negate())
                 .sorted()
                 .forEach((path) ->
                     System.out.printf("  %s%n", path));
         }
+    }
+
+    @Test
+    public void testFilesWalk_Multiple() throws IOException
+    {
+        Map<String, String> env = new HashMap<>();
+        env.put("multi-release", "runtime");
+
+        URI zipUri = URI.create("jar:" + createdJar.toUri().toASCIIString());
+
+        FileSystem fs1 = FileSystems.newFileSystem(zipUri, env);
+        FileSystem fs2 = FileSystems.newFileSystem(zipUri, env);
+    }
+
+    @Test
+    public void testFileSystemPool() throws IOException
+    {
+        FileSystemPool fsPool = new FileSystemPool();
+
+        FileSystem fs1 = fsPool.acquireZipFs(createdJar, "runtime");
+        FileSystem fs2 = fsPool.acquireZipFs(createdJar, "runtime");
     }
 
     /**
